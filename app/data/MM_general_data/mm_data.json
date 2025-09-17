@@ -1,0 +1,58 @@
+{
+  "topic": "MM Mega Market - Tổng hợp thông tin",
+  "general_description": "Tổng hợp các thông tin chính về MM Mega Market Việt Nam, bao gồm thông tin chung, hướng dẫn mua hàng, các chính sách và thông tin liên hệ.",
+  "sections": [
+    {
+      "name": "Thông tin chung",
+      "description": "MM Mega Market Việt Nam là đối tác bán sỉ bán lẻ hàng đầu cho cả nhóm khách hàng cá nhân (B2C) và khách hàng chuyên nghiệp (B2B). Công ty thuộc tập đoàn BJC/TCC Thái Lan, được chuyển đổi từ Metro Cash & Carry vào năm 2016.",
+      "file_reference": "general_info.json"
+    },
+    {
+      "name": "Hướng dẫn mua hàng B2C",
+      "description": "Hướng dẫn chi tiết về cách mua hàng trên website Click&Get của MM Mega Market Việt Nam, từ việc đăng ký tài khoản, tìm kiếm sản phẩm, đặt hàng đến thanh toán và nhận hàng.",
+      "file_reference": "purchase_guide.json"
+    },
+    {
+      "name": "Chính sách đổi trả B2C",
+      "description": "Chính sách đổi trả của MM Mega Market áp dụng cho các sản phẩm mua trực tiếp hoặc qua kênh bán hàng online, bao gồm các điều kiện đổi trả, quy trình và các trường hợp đặc biệt.",
+      "file_reference": "return_policy.json"
+    },
+    {
+      "name": "Chính sách giao hàng B2C",
+      "description": "Chính sách giao hàng của MM Mega Market áp dụng cho đơn hàng mua sắm trực tuyến, bao gồm các quy định về phí giao hàng, khoảng cách giao hàng, thời gian giao hàng và các điều kiện khác.",
+      "file_reference": "delivery_policy.json"
+    },
+    {
+      "name": "Vị trí các siêu thị MM",
+      "description": "MM Mega Market Việt Nam hiện có 21 trung tâm phân phối trên toàn quốc, phục vụ cả khách hàng cá nhân (B2C) và khách hàng chuyên nghiệp (B2B).",
+      "file_reference": "store_locations.json"
+    },
+    {
+      "name": "Chính sách bảo mật",
+      "description": "Chính sách bảo mật của MM Mega Market mô tả cách thức thu thập, sử dụng, bảo vệ và xử lý thông tin cá nhân của khách hàng khi sử dụng dịch vụ trực tuyến và các quyền của khách hàng liên quan đến dữ liệu cá nhân.",
+      "file_reference": "privacy_policy.json"
+    },
+    {
+      "name": "Thông tin liên hệ",
+      "description": "Thông tin liên hệ chính thức của MM Mega Market Việt Nam, bao gồm địa chỉ trụ sở chính, số điện thoại, email, website và các kênh liên hệ khác.",
+      "file_reference": "contact_info.json"
+    }
+  ],
+  "keywords": [
+    "MM Mega Market",
+    "siêu thị MM",
+    "B2C",
+    "B2B",
+    "Click&Get",
+    "MM Pro",
+    "bán sỉ",
+    "bán lẻ",
+    "mua hàng online",
+    "giao hàng",
+    "đổi trả",
+    "bảo mật",
+    "địa chỉ MM",
+    "liên hệ MM"
+  ],
+  "last_updated": "2025-05-14"
+}

@@ -1,0 +1,22 @@
+{
+  "name": "default",
+  "description": "Default evaluation set for multi-tool agent",
+  "eval_samples": [
+    {
+      "input": "Hello there!",
+      "expected_output": "A friendly greeting response"
+    },
+    {
+      "input": "What's the weather in New York?",
+      "expected_output": "Weather information for New York"
+    },
+    {
+      "input": "What time is it in London?",
+      "expected_output": "Current time in London"
+    },
+    {
+      "input": "Goodbye",
+      "expected_output": "A farewell message"
+    }
+  ]
+} 
