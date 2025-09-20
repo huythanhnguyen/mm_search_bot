@@ -1,6 +1,6 @@
 """
-Simple Search Tool for MMVN - direct GraphQL call to online.mmvietnam.com
-Only uses parameters documented in CnG API Doc.
+Antsomi CDP 365 API Smart Search Tool for MMVN
+Uses the new Antsomi search engine for better product discovery.
 """
 
 import logging
@@ -13,181 +13,214 @@ import urllib.parse
 
 logger = logging.getLogger(__name__)
 
-GRAPHQL_ENDPOINT = "https://online.mmvietnam.com/graphql"
-DEFAULT_STORE = "b2c_10010_vi"
-
-
-def _build_product_url(product: Dict[str, Any]) -> str:
-    if product.get("url_key") and product.get("url_suffix"):
-        return f"https://online.mmvietnam.com/product/{product['url_key']}{product['url_suffix']}"
-    if product.get("url_key"):
-        return f"https://online.mmvietnam.com/product/{product['url_key']}.html"
-    if product.get("url_path"):
-        return f"https://online.mmvietnam.com{product['url_path']}"
-    return ""
+# Antsomi CDP 365 API Configuration
+ANTISOMI_BASE_URL = "https://search.ants.tech"
+ANTISOMI_BEARER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwb3J0YWxJZCI6IjU2NDg5MjM3MyIsIm5hbWUiOiJNZWdhIE1hcmtldCJ9.iXymLjrJn-QVPO6gOV3MW8zJ4-u0Ih2L4qSOBZdIM24"
+DEFAULT_USER_ID = "564996752"  # Default user ID for testing
+DEFAULT_STORE_ID = "10010"
+DEFAULT_PRODUCT_TYPE = "B2C"
 
 
 def _to_minimal_product(product: Dict[str, Any]) -> Dict[str, Any]:
-    # Prefer GraphQL fields
-    small_image = product.get("small_image", {})
-    image_url = small_image.get("url") if isinstance(small_image, dict) else ""
-
-    # Prices from GraphQL
+    """Convert Antsomi API product response to minimal format expected by frontend."""
+    # Extract price information
     current_price = 0
     original_price = None
     discount_percentage = None
+    
     try:
-        max_price = product.get("price_range", {}).get("maximum_price", {})
-        final_price = max_price.get("final_price", {})
-        current_price = final_price.get("value", 0)
-        regular_amount = product.get("price", {}).get("regularPrice", {}).get("amount", {})
-        original_price = regular_amount.get("value")
-        percent_off = max_price.get("discount", {}).get("percent_off")
-        if isinstance(percent_off, (int, float)) and percent_off > 0:
-            discount_percentage = f"{round(percent_off)}%"
+        price_str = str(product.get("price", "0"))
+        original_price_str = str(product.get("original_price", "0"))
+        
+        current_price = float(price_str) if price_str.replace(".", "").isdigit() else 0
+        original_price = float(original_price_str) if original_price_str.replace(".", "").isdigit() else None
+        
+        # Calculate discount if original price is higher
+        if original_price and original_price > current_price:
+            discount_amount = original_price - current_price
+            discount_percentage = f"{round((discount_amount / original_price) * 100)}%"
     except Exception:
         pass
 
-    # Description normalization
-    description = ""
-    if isinstance(product.get("description"), dict):
-        description = product.get("description", {}).get("html", "")
-    elif isinstance(product.get("description"), str):
-        description = product.get("description", "")
+    # Build product URL from page_url field
+    product_url = product.get("page_url", "")
+    
+    # Extract image URL
+    image_url = product.get("image_url", "")
 
-    # Category name from categories.items[0].name if present
-    category_name = ""
-    categories_list = product.get("categories")
-    categories_all: List[Dict[str, Any]] = []
-    if isinstance(categories_list, list):
-        categories_all = [
-            {"name": c.get("name"), "uid": c.get("uid"), "url_path": c.get("url_path")}
-            for c in categories_list if isinstance(c, dict)
-        ]
-        if categories_all:
-            category_name = categories_all[0].get("name") or ""
-
-    # Only include attributes that the frontend uses and GraphQL actually provides
+    # Build minimal product object
     minimal: Dict[str, Any] = {
         "id": product.get("id", ""),
         "sku": product.get("sku", ""),
-        "name": product.get("name", ""),
+        "name": product.get("title", ""),
         "price": {
-            "current": current_price or 0,
+            "current": current_price,
             "original": original_price,
             "currency": "VND",
             "discount": discount_percentage,
         },
         "image": {"url": image_url},
-        "description": description,
-        "productUrl": _build_product_url(product),
+        "description": "",  # Antsomi API doesn't provide description
+        "productUrl": product_url,
+        "category": product.get("category", ""),
+        "status": product.get("status", ""),
     }
-    # Optional unit for display if present
-    if product.get("unit_ecom"):
-        minimal["unit"] = product.get("unit_ecom")
-    if category_name:
-        minimal["category"] = category_name
-    if categories_all:
-        minimal["categories_all"] = categories_all
+    
     return minimal
 
 
 def _strip_accents(text: str) -> str:
+    """Remove accents from Vietnamese text for better search matching."""
     try:
         return ''.join(c for c in unicodedata.normalize('NFD', text) if unicodedata.category(c) != 'Mn')
     except Exception:
         return text
 
 
-async def _graphql_get(session: aiohttp.ClientSession, query: str) -> Dict[str, Any]:
-    params = {"query": query}
-    url = GRAPHQL_ENDPOINT + "?" + urllib.parse.urlencode(params)
-    headers = {"Store": DEFAULT_STORE}
-    async with session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=20)) as resp:
+async def _antsomi_request(session: aiohttp.ClientSession, endpoint: str, params: Dict[str, Any]) -> Dict[str, Any]:
+    """Make request to Antsomi API with proper authentication."""
+    url = f"{ANTISOMI_BASE_URL}/{endpoint}"
+    headers = {
+        "Authorization": f"Bearer {ANTISOMI_BEARER_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    
+    async with session.get(url, params=params, headers=headers, timeout=aiohttp.ClientTimeout(total=20)) as resp:
         resp.raise_for_status()
         return await resp.json()
 
 
-async def search_products(keywords: str, tool_context: ToolContext, filters: Optional[dict] = None) -> str:
-    """Search products using GraphQL 'products(search: ...)'. No extra unsupported params."""
+async def suggest_keywords(query: str, user_id: str = DEFAULT_USER_ID) -> List[str]:
+    """Get keyword suggestions from Antsomi API."""
     try:
-        logger.info("[MMVN] GraphQL search: %s", keywords)
-
-        # Build GraphQL per docs
-        safe_query = keywords.replace('"', '\\"')
-        gql = (
-            "query ProductSearch { products(search: \"%s\", sort: { relevance: DESC }) { items { "
-            "id sku name url_key url_suffix url_path "
-            "price { regularPrice { amount { currency value } } } "
-            "price_range { maximum_price { final_price { currency value } discount { percent_off } } } "
-            "small_image { url } unit_ecom description { html } "
-            "categories { items { name uid url_path } } "
-            "} total_count } }"
-        ) % safe_query
-
+        params = {
+            "q": query,
+            "user_id": user_id,
+            "store_id": DEFAULT_STORE_ID,
+            "product_type": DEFAULT_PRODUCT_TYPE
+        }
+        
         async with aiohttp.ClientSession() as session:
-            data = await _graphql_get(session, gql)
+            data = await _antsomi_request(session, "suggest", params)
+        
+        suggestions = data.get("suggestions", [])
+        return [s.get("keyword", "") for s in suggestions if s.get("keyword")]
+    except Exception as e:
+        logger.warning(f"Failed to get keyword suggestions: {e}")
+        return []
 
-        items: List[Dict[str, Any]] = data.get("data", {}).get("products", {}).get("items", [])
 
-        # Normalize fields expected by UI
-        normalized = []
-        for item in items:
-            # categories is an array at this endpoint
-            normalized.append({
-                **item,
-                "categories": item.get("categories") if isinstance(item.get("categories"), list) else []
-            })
+async def search_products_antsomi(query: str, user_id: str = DEFAULT_USER_ID, 
+                                 filters: Optional[Dict[str, Any]] = None,
+                                 page: int = 1, limit: int = 20) -> Dict[str, Any]:
+    """Search products using Antsomi Smart Search API."""
+    try:
+        params = {
+            "q": query,
+            "user_id": user_id,
+            "store_id": DEFAULT_STORE_ID,
+            "product_type": DEFAULT_PRODUCT_TYPE,
+            "page": page,
+            "limit": limit
+        }
+        
+        # Add filters if provided
+        if filters:
+            params["filters"] = json.dumps(filters)
+        
+        async with aiohttp.ClientSession() as session:
+            data = await _antsomi_request(session, "smart_search", params)
+        
+        return data
+    except Exception as e:
+        logger.error(f"Antsomi search failed: {e}")
+        return {"results": [], "total": "0", "type": "", "categories": {}}
 
-        minimal_products = [_to_minimal_product(p) for p in normalized[:50]]
-        # Sort by category name only (empty last), then by product name
+
+async def search_products(keywords: str, tool_context: ToolContext, filters: Optional[dict] = None) -> str:
+    """Main search function using Antsomi CDP 365 API Smart Search."""
+    try:
+        logger.info("[Antsomi] Smart search: %s", keywords)
+        
+        # First, try to get keyword suggestions to improve search
+        suggestions = await suggest_keywords(keywords)
+        search_query = keywords
+        
+        # If we have suggestions, use the first one that's different from original
+        if suggestions and suggestions[0] != keywords:
+            search_query = suggestions[0]
+            logger.info(f"Using suggested keyword: {search_query}")
+        
+        # Search products using Antsomi API
+        search_result = await search_products_antsomi(search_query, filters=filters, limit=50)
+        
+        results = search_result.get("results", [])
+        total = search_result.get("total", "0")
+        search_type = search_result.get("type", "")
+        categories = search_result.get("categories", {})
+        
+        # Convert to minimal product format
+        minimal_products = [_to_minimal_product(p) for p in results]
+        
+        # Sort by category name (empty last), then by product name
         minimal_products.sort(key=lambda x: ((x.get("category") or "") == "", (x.get("category") or ""), x.get("name") or ""))
-
+        
+        # Build response message
+        if search_type == "sku":
+            message = f"Tìm thấy sản phẩm theo SKU '{keywords}'"
+        else:
+            message = f"Tìm thấy {len(results)} sản phẩm phù hợp với '{keywords}'"
+            if total != "0" and int(total) > len(results):
+                message += f" (tổng cộng {total} sản phẩm)"
+        
         json_response = {
             "type": "product-display",
-            "message": f"Tìm thấy {len(normalized)} sản phẩm phù hợp với '{keywords}'",
+            "message": message,
             "products": minimal_products,
+            "search_metadata": {
+                "total": total,
+                "search_type": search_type,
+                "categories": categories,
+                "suggestions": suggestions[:5] if suggestions else []
+            }
         }
-
-        # If no results, fallback with simplified queries
+        
+        # If no results, try fallback searches
         if not minimal_products:
-            variations: List[str] = []
+            fallback_queries = []
+            
             # 1) Remove accents
             no_acc = _strip_accents(keywords)
             if no_acc and no_acc != keywords:
-                variations.append(no_acc)
-            # 2) Keep only first two tokens
-            toks = [t for t in keywords.split() if t]
-            if len(toks) > 2:
-                variations.append(' '.join(toks[:2]))
-            # 3) Single first token
-            if toks:
-                variations.append(toks[0])
-
-            for vq in variations:
-                safe_vq = vq.replace('"', '\\"')
-                gql_v = (
-                    "query ProductSearch { products(search: \"%s\", sort: { relevance: DESC }) { items { "
-                    "id sku name url_key url_suffix url_path "
-                    "price { regularPrice { amount { currency value } } } "
-                    "price_range { maximum_price { final_price { currency value } discount { percent_off } } } "
-                    "small_image { url } unit_ecom description { html } "
-                    "categories { name uid url_path } "
-                    "} total_count } }"
-                ) % safe_vq
-                data = await _graphql_get(aiohttp.ClientSession(), gql_v)
-                items = data.get("data", {}).get("products", {}).get("items", [])
-                normalized = [{**it, "categories": it.get("categories") if isinstance(it.get("categories"), list) else []} for it in items]
-                minimal_products = [_to_minimal_product(p) for p in normalized[:50]]
-                minimal_products.sort(key=lambda x: ((x.get("category") or "") == "", (x.get("category") or ""), x.get("name") or ""))
-                if minimal_products:
-                    json_response["message"] = f"Tìm thấy {len(normalized)} sản phẩm phù hợp với '{vq}'"
+                fallback_queries.append(no_acc)
+            
+            # 2) Keep only first two words
+            words = keywords.split()
+            if len(words) > 2:
+                fallback_queries.append(' '.join(words[:2]))
+            
+            # 3) Single first word
+            if words:
+                fallback_queries.append(words[0])
+            
+            # Try fallback queries
+            for fallback_query in fallback_queries:
+                logger.info(f"Trying fallback search: {fallback_query}")
+                fallback_result = await search_products_antsomi(fallback_query, limit=50)
+                fallback_products = fallback_result.get("results", [])
+                
+                if fallback_products:
+                    minimal_products = [_to_minimal_product(p) for p in fallback_products]
+                    minimal_products.sort(key=lambda x: ((x.get("category") or "") == "", (x.get("category") or ""), x.get("name") or ""))
+                    
+                    json_response["message"] = f"Tìm thấy {len(fallback_products)} sản phẩm phù hợp với '{fallback_query}'"
                     json_response["products"] = minimal_products
                     break
-
+        
         return json.dumps(json_response, ensure_ascii=False)
+        
     except Exception as e:
-        logger.exception("Search error")
+        logger.exception("Antsomi search error")
         return f"Lỗi khi tìm kiếm sản phẩm: {str(e)}"
 
 

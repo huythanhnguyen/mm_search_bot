@@ -1,0 +1,259 @@
+[1mdiff --git a/.gitignore b/.gitignore[m
+[1mindex 6400088..bccc60a 100644[m
+[1m--- a/.gitignore[m
+[1m+++ b/.gitignore[m
+[36m@@ -1,125 +1,127 @@[m
+[31m-# Python[m
+[31m-__pycache__/[m
+[31m-*.py[cod][m
+[31m-*$py.class[m
+[31m-*.so[m
+[31m-.Python[m
+[31m-build/[m
+[31m-develop-eggs/[m
+[31m-dist/[m
+[31m-downloads/[m
+[31m-backup/[m
+[31m-/backup/[m
+[31m-backup/*[m
+[31m-eggs/[m
+[31m-.eggs/[m
+[31m-lib/[m
+[31m-lib64/[m
+[31m-parts/[m
+[31m-sdist/[m
+[31m-var/[m
+[31m-wheels/[m
+[31m-*.egg-info/[m
+[31m-.installed.cfg[m
+[31m-*.egg[m
+[31m-[m
+[31m-# Virtual Environment[m
+[31m-venv/[m
+[31m-ENV/[m
+[31m-env/[m
+[31m-.env[m
+[31m-[m
+[31m-# IDE[m
+[31m-.idea/[m
+[31m-.vscode/[m
+[31m-*.swp[m
+[31m-*.swo[m
+[31m-[m
+[31m-# OS[m
+[31m-.DS_Store[m
+[31m-Thumbs.db[m
+[31m-[m
+[31m-# Google Cloud / ADK specific[m
+[31m-*.dat[m
+[31m-credentials.json[m
+[31m-token.json[m
+[31m-.credentials/[m
+[31m-[m
+[31m-# Browser/JS related[m
+[31m-node_modules/[m
+[31m-.npm[m
+[31m-.eslintcache[m
+[31m-frontend/dist/[m
+[31m-frontend/.vite/[m
+[31m-frontend/.turbo/[m
+[31m-frontend/.parcel-cache/[m
+[31m-[m
+[31m-# Tiered Memory Storage[m
+[31m-.tier/[m
+[31m-.tiered/[m
+[31m-*.tier[m
+[31m-[m
+[31m-# Logs[m
+[31m-*.log[m
+[31m-logs/[m
+[31m-coverage/[m
+[31m-.cache/[m
+[31m-[m
+[31m-# Environment variables[m
+[31m-.env[m
+[31m-.env.local[m
+[31m-.env.development.local[m
+[31m-.env.test.local[m
+[31m-.env.production.local[m
+[31m-app/.env[m
+[31m-.python-version[m
+[31m-*.local.sqlite3[m
+[31m-[m
+[31m-# Testing[m
+[31m-.coverage[m
+[31m-htmlcov/[m
+[31m-.pytest_cache/[m
+[31m-.tox/[m
+[31m-[m
+[31m-# Distribution / packaging[m
+[31m-.Python[m
+[31m-*.manifest[m
+[31m-*.spec[m
+[31m-pip-log.txt[m
+[31m-pip-delete-this-directory.txt[m
+[31m-[m
+[31m-# Django[m
+[31m-*.pot[m
+[31m-*.mo[m
+[31m-local_settings.py[m
+[31m-db.sqlite3[m
+[31m-db.sqlite3-journal[m
+[31m-[m
+[31m-# Jupyter Notebook[m
+[31m-.ipynb_checkpoints[m
+[31m-[m
+[31m-# Other[m
+[31m-*.bak[m
+[31m-*.tmp[m
+[31m-*~[m
+[31m-.*.sw[a-p][m
+[31m-[m
+[31m-# Python virtual environment[m
+[31m-.venv/[m
+[31m-venv/[m
+[31m-[m
+[31m-# Environment variables[m
+[31m-.env[m
+[31m-[m
+[31m-# IDE settings[m
+[31m-.vscode/[m
+[31m-.idea/[m
+[31m-[m
+[31m-# Log files[m
+[31m-*.log[m
+[31m-web_server.log[m
+[31m-api_server.log[m
+[31m-[m
+[31m-# System files[m
+[31m-.DS_Store[m
+[31m-Thumbs.db[m
+\ No newline at end of file[m
+[32m+[m[32m# Python[m
+[32m+[m[32m__pycache__/[m
+[32m+[m[32m*.py[cod][m
+[32m+[m[32m*$py.class[m
+[32m+[m[32m*.so[m
+[32m+[m[32m.Python[m
+[32m+[m[32mbuild/[m
+[32m+[m[32mdevelop-eggs/[m
+[32m+[m[32mdist/[m
+[32m+[m[32mdownloads/[m
+[32m+[m[32mbackup/[m
+[32m+[m[32m/backup/[m
+[32m+[m[32mbackup/*[m
+[32m+[m[32meggs/[m
+[32m+[m[32m.eggs/[m
+[32m+[m[32mlib/[m
+[32m+[m[32mlib64/[m
+[32m+[m[32mparts/[m
+[32m+[m[32msdist/[m
+[32m+[m[32mvar/[m
+[32m+[m[32mwheels/[m
+[32m+[m[32m*.egg-info/[m
+[32m+[m[32m.installed.cfg[m
+[32m+[m[32m*.egg[m
+[32m+[m
+[32m+[m[32m# Virtual Environment[m
+[32m+[m[32mvenv/[m
+[32m+[m[32mENV/[m
+[32m+[m[32menv/[m
+[32m+[m[32m.env[m
+[32m+[m
+[32m+[m[32m# IDE[m
+[32m+[m[32m.idea/[m
+[32m+[m[32m.vscode/[m
+[32m+[m[32m*.swp[m
+[32m+[m[32m*.swo[m
+[32m+[m
+[32m+[m[32m# OS[m
+[32m+[m[32m.DS_Store[m
+[32m+[m[32mThumbs.db[m
+[32m+[m
+[32m+[m[32m# Google Cloud / ADK specific[m
+[32m+[m[32m*.dat[m
+[32m+[m[32mcredentials.json[m
+[32m+[m[32mtoken.json[m
+[32m+[m[32m.credentials/[m
+[32m+[m
+[32m+[m[32m# Browser/JS related[m
+[32m+[m[32mnode_modules/[m
+[32m+[m[32m.npm[m
+[32m+[m[32m.eslintcache[m
+[32m+[m[32mfrontend/dist/[m
+[32m+[m[32mfrontend/.vite/[m
+[32m+[m[32mfrontend/.turbo/[m
+[32m+[m[32mfrontend/.parcel-cache/[m
+[32m+[m
+[32m+[m[32m# Tiered Memory Storage[m
+[32m+[m[32m.tier/[m
+[32m+[m[32m.tiered/[m
+[32m+[m[32m*.tier[m
+[32m+[m
+[32m+[m[32m# Logs[m
+[32m+[m[32m*.log[m
+[32m+[m[32mlogs/[m
+[32m+[m[32mcoverage/[m
+[32m+[m[32m.cache/[m
+[32m+[m
+[32m+[m[32m# Environment variables[m
+[32m+[m[32m.env[m
+[32m+[m[32m.env.local[m
+[32m+[m[32m.env.development.local[m
+[32m+[m[32m.env.test.local[m
+[32m+[m[32m.env.production.local[m
+[32m+[m[32mapp/.env[m
+[32m+[m[32m.python-version[m
+[32m+[m[32m*.local.sqlite3[m
+[32m+[m
+[32m+[m[32m# Testing[m
+[32m+[m[32m.coverage[m
+[32m+[m[32mhtmlcov/[m
+[32m+[m[32m.pytest_cache/[m
+[32m+[m[32m.tox/[m
+[32m+[m
+[32m+[m[32m# Distribution / packaging[m
+[32m+[m[32m.Python[m
+[32m+[m[32m*.manifest[m
+[32m+[m[32m*.spec[m
+[32m+[m[32mpip-log.txt[m
+[32m+[m[32mpip-delete-this-directory.txt[m
+[32m+[m
+[32m+[m[32m# Django[m
+[32m+[m[32m*.pot[m
+[32m+[m[32m*.mo[m
+[32m+[m[32mlocal_settings.py[m
+[32m+[m[32mdb.sqlite3[m
+[32m+[m[32mdb.sqlite3-journal[m
+[32m+[m
+[32m+[m[32m# Jupyter Notebook[m
+[32m+[m[32m.ipynb_checkpoints[m
+[32m+[m
+[32m+[m[32m# Other[m
+[32m+[m[32m*.bak[m
+[32m+[m[32m*.tmp[m
+[32m+[m[32m*~[m
+[32m+[m[32m.*.sw[a-p][m
+[32m+[m
+[32m+[m[32m# Python virtual environment[m
+[32m+[m[32m.venv/[m
+[32m+[m[32mvenv/[m
+[32m+[m
+[32m+[m[32m# Environment variables[m
+[32m+[m[32m.env[m
+[32m+[m
+[32m+[m[32m# IDE settings[m
+[32m+[m[32m.vscode/[m
+[32m+[m[32m.idea/[m
+[32m+[m
+[32m+[m[32m# Log files[m
+[32m+[m[32m*.log[m
+[32m+[m[32mweb_server.log[m
+[32m+[m[32mapi_server.log[m
+[32m+[m
+[32m+[m[32m# System files[m
+[32m+[m[32m.DS_Store[m
+[32m+[m[32mThumbs.db[m
+[32m+[m[32mmmsearch.pem[m
+[32m+[m[32mapi-worker-windows (1)[m
+\ No newline at end of file[m

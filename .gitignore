@@ -123,3 +123,5 @@ api_server.log
 # System files
 .DS_Store
 Thumbs.db
+mmsearch.pem
+api-worker-windows (1)
