@@ -29,8 +29,6 @@ QUAN TRỌNG: Luôn tìm kiếm trong memory trước khi trả lời để đ�
 
 # Import simple tools we added
 from app.tools.search import search_products
-from app.tools.explore import explore_product
-from app.tools.compare import compare_products
 from app.memory_agent import MMVNMemoryAgent
 
 logger = logging.getLogger(__name__)
@@ -38,15 +36,13 @@ logger = logging.getLogger(__name__)
 # Create memory-enhanced agent
 root_agent = MMVNMemoryAgent(
     model=PRIMARY_MODEL,
-    name="mmvn_memory_agent",
+    name="mmvn_search_agent",
     instruction=MMVN_AGENT_INSTRUCTION,
     tools=[
         search_products,
-        explore_product,
-        compare_products,
         load_memory,  # Add memory tool
     ],
-    output_key="product_memory_agent",
+    output_key="mmvn_search_agent",
 )
 
 # Required export for ADK web UI

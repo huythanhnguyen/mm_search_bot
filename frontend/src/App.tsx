@@ -57,6 +57,7 @@ export default function App() {
   console.log('[API_BASE] Using API base URL:', API_BASE);
   console.log('[API_BASE] Environment VITE_API_BASE_URL:', (import.meta as any).env?.VITE_API_BASE_URL);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [tokenUsage, setTokenUsage] = useState<{ totalTokenCount: number | null }>(() => ({ totalTokenCount: null }));
 
   // Sidebar can now stay open on welcome screen for consistent UX
 
@@ -146,6 +147,16 @@ export default function App() {
       let functionCall = null;
       let functionResponse = null;
       let sources = null;
+      // Extract usage metadata if present
+      try {
+        const usage = (parsed as any).usageMetadata || (parsed as any).usage || (parsed as any).metadata?.usage;
+        const detailsArr = usage?.promptTokensDetails || usage?.tokenDetails || [];
+        const detail = Array.isArray(detailsArr) && detailsArr.length > 0 ? detailsArr[0] : undefined;
+        const total = detail?.totalTokenCount ?? usage?.totalTokenCount ?? null;
+        if (typeof total === 'number') {
+          setTokenUsage({ totalTokenCount: total });
+        }
+      } catch {}
 
       // Check if content.parts exists and has text
       if (parsed.content && parsed.content.parts) {
@@ -480,6 +491,16 @@ export default function App() {
               }
             }
           }
+          // Capture usage metadata from each event if present
+          try {
+            const usage = (event as any).usageMetadata || (event as any).usage || (event as any).metadata?.usage;
+            const detailsArr = usage?.promptTokensDetails || usage?.tokenDetails || [];
+            const detail = Array.isArray(detailsArr) && detailsArr.length > 0 ? detailsArr[0] : undefined;
+            const total = detail?.totalTokenCount ?? usage?.totalTokenCount ?? null;
+            if (typeof total === 'number') {
+              setTokenUsage({ totalTokenCount: total });
+            }
+          } catch {}
         }
       }
     } catch (e) {
@@ -498,6 +519,23 @@ export default function App() {
     }]);
     return finalText || bodyText;
   };
+
+  const handleStartNewChat = useCallback(async () => {
+    try {
+      const sessionData = await retryWithBackoff(createSession);
+      setUserId(sessionData.userId);
+      setSessionId(sessionData.sessionId);
+      setAppName(sessionData.appName);
+      setMessages([]);
+      setMessageEvents(new Map());
+      setDisplayData(null);
+      setTokenUsage({ totalTokenCount: null });
+      // Persist sessions if needed
+      saveSessionsToStorage([]);
+    } catch (e) {
+      console.error('[NEW_CHAT] Failed to start new chat', e);
+    }
+  }, []);
 
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -773,15 +811,32 @@ export default function App() {
             onCancel={handleCancel}
           />
         ) : (
-          <ChatMessagesView
-            messages={messages}
-            isLoading={isLoading}
-            scrollAreaRef={scrollAreaRef as React.RefObject<HTMLDivElement>}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            displayData={displayData}
-            messageEvents={messageEvents}
-          />
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {tokenUsage.totalTokenCount !== null && tokenUsage.totalTokenCount >= 2000 && (
+              <div className="p-3 sticky top-0 z-40 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+                <Card>
+                  <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 py-4">
+                    <div className="text-sm">
+                      <div className="font-medium">Đoạn chat đã quá dài</div>
+                      <div className="text-muted-foreground">Tổng số token hiện tại là {tokenUsage.totalTokenCount?.toLocaleString?.() || tokenUsage.totalTokenCount}. Vui lòng bắt đầu đoạn chat mới để tiếp tục.</div>
+                    </div>
+                    <Button onClick={handleStartNewChat}>
+                      Bắt đầu đoạn chat mới
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+            <ChatMessagesView
+              messages={messages}
+              isLoading={isLoading}
+              scrollAreaRef={scrollAreaRef as React.RefObject<HTMLDivElement>}
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              displayData={displayData}
+              messageEvents={messageEvents}
+            />
+          </div>
         )}
       </div>
     </div>

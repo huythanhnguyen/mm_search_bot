@@ -112,7 +112,7 @@ async def suggest_keywords(query: str, user_id: str = DEFAULT_USER_ID) -> List[s
 
 async def search_products_antsomi(query: str, user_id: str = DEFAULT_USER_ID, 
                                  filters: Optional[Dict[str, Any]] = None,
-                                 page: int = 1, limit: int = 20) -> Dict[str, Any]:
+                                 page: int = 1, limit: int = 5) -> Dict[str, Any]:
     """Search products using Antsomi Smart Search API."""
     try:
         params = {
@@ -151,16 +151,16 @@ async def search_products(keywords: str, tool_context: ToolContext, filters: Opt
             search_query = suggestions[0]
             logger.info(f"Using suggested keyword: {search_query}")
         
-        # Search products using Antsomi API
-        search_result = await search_products_antsomi(search_query, filters=filters, limit=50)
+        # Search products using Antsomi API (limit to 5)
+        search_result = await search_products_antsomi(search_query, filters=filters, limit=5)
         
         results = search_result.get("results", [])
         total = search_result.get("total", "0")
         search_type = search_result.get("type", "")
         categories = search_result.get("categories", {})
         
-        # Convert to minimal product format
-        minimal_products = [_to_minimal_product(p) for p in results]
+        # Convert to minimal product format and limit to 5
+        minimal_products = [_to_minimal_product(p) for p in results][:5]
         
         # Sort by category name (empty last), then by product name
         minimal_products.sort(key=lambda x: ((x.get("category") or "") == "", (x.get("category") or ""), x.get("name") or ""))
@@ -169,20 +169,14 @@ async def search_products(keywords: str, tool_context: ToolContext, filters: Opt
         if search_type == "sku":
             message = f"Tìm thấy sản phẩm theo SKU '{keywords}'"
         else:
-            message = f"Tìm thấy {len(results)} sản phẩm phù hợp với '{keywords}'"
-            if total != "0" and int(total) > len(results):
+            message = f"Tìm thấy {len(minimal_products)} sản phẩm phù hợp với '{keywords}'"
+            if total != "0" and int(total) > len(minimal_products):
                 message += f" (tổng cộng {total} sản phẩm)"
         
         json_response = {
             "type": "product-display",
             "message": message,
-            "products": minimal_products,
-            "search_metadata": {
-                "total": total,
-                "search_type": search_type,
-                "categories": categories,
-                "suggestions": suggestions[:5] if suggestions else []
-            }
+            "products": minimal_products
         }
         
         # If no results, try fallback searches
@@ -206,14 +200,14 @@ async def search_products(keywords: str, tool_context: ToolContext, filters: Opt
             # Try fallback queries
             for fallback_query in fallback_queries:
                 logger.info(f"Trying fallback search: {fallback_query}")
-                fallback_result = await search_products_antsomi(fallback_query, limit=50)
+                fallback_result = await search_products_antsomi(fallback_query, limit=5)
                 fallback_products = fallback_result.get("results", [])
                 
                 if fallback_products:
-                    minimal_products = [_to_minimal_product(p) for p in fallback_products]
+                    minimal_products = [_to_minimal_product(p) for p in fallback_products][:5]
                     minimal_products.sort(key=lambda x: ((x.get("category") or "") == "", (x.get("category") or ""), x.get("name") or ""))
                     
-                    json_response["message"] = f"Tìm thấy {len(fallback_products)} sản phẩm phù hợp với '{fallback_query}'"
+                    json_response["message"] = f"Tìm thấy {len(minimal_products)} sản phẩm phù hợp với '{fallback_query}'"
                     json_response["products"] = minimal_products
                     break
         
